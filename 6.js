@@ -79,51 +79,42 @@ class CredentialsProcessor extends AuthProcessor {
   }
 }
 
-// Клас Builder для створення об'єкта ланцюга обробників.
 class ProcessorBuilder {
-  // Конструктор який не приймає вхідні значення
   constructor() {
-    //Властивість firstProcessor, що зберігає перший обробник у ланцюгу, за замовчуванням дорівнює null.
     this.firstProcessor = null;
-    //Властивість lastProcessor, що зберігає останній обробник у ланцюгу, за замовчуванням дорівнює null.
     this.lastProcessor = null;
   }
 
-  // Метод add для додавання нового обробника в ланцюг.
   add(processor) {
-    // Якщо це перший обробник, він зберігається як перший і останній.
-    if (this.firstProcessor) {
+    if (!this.firstProcessor) {
       this.firstProcessor = processor;
       this.lastProcessor = processor;
     } else {
-      // Якщо це не перший обробник, він додається в кінець ланцюга, і стає останнім.
       this.lastProcessor.setNextProcessor(processor);
       this.lastProcessor = processor;
     }
-    // Повертає this.
     return this;
   }
 
-  // Метод create для створення ланцюга обробників.
   create() {
-    // Повертає перший обробник у ланцюгу.
     return this.firstProcessor;
   }
 }
+
 console.log("Завдання 6 ====================================");
 
-// Створюємо Builder для ланцюга обробників.
 const processorBuilder = new ProcessorBuilder();
 
-// Додаємо обробники в ланцюг за допомогою builder'а.
-const processor = processorBuilder
+processorBuilder
   .add(new CredentialsProcessor())
   .add(new TwoStepProcessor())
-  .add(new RoleProcessor())
-  .create();
+  .add(new RoleProcessor());
 
-// Перевіряємо користувачів за допомогою нашого ланцюга обробників.
-processor.validate("admin", "admin123"); // Вхід дозволено за обліковими даними
-processor.validate("john", "password"); // Вхід дозволено з двоступінчастою аутентифікацією
-processor.validate("guest", "guest123"); // Вхід дозволено з роллю гостя
-processor.validate("user", "password"); // Вхід заборонено
+const processor = processorBuilder.create();
+
+if (processor) {
+  processor.validate("admin", "admin123"); // Вхід дозволено за обліковими даними
+  processor.validate("john", "password"); // Вхід дозволено з двоступінчастою аутентифікацією
+  processor.validate("guest", "guest123"); // Вхід дозволено з роллю гостя
+  processor.validate("user", "password"); // Вхід заборонено
+}
